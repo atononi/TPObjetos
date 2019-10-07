@@ -40,7 +40,6 @@ const goodAirs = new Destino(
 
 // Barrilete Cosmico
 object barrileteCosmico{
-	var property usuario
 	var property origen
 	var property destino
 	const property mediosTransporte = [avion, micro]
@@ -50,7 +49,7 @@ object barrileteCosmico{
 		usuario = unUsuario
 	}
 	
-	method armarViaje(nuevoDestino){
+	method armarViaje(usuario, nuevoDestino){
 		origen = usuario.localidadOrigen()
 		destino = nuevoDestino
 		transporte = mediosTransporte.anyOne() 
@@ -109,9 +108,13 @@ class Viaje {
 	var property transporte
 	var property valorKm = 0
 	
+	method valorKm(){
+		valor = origen.distanciaEntre(destino) * transporte.costoPorKilometro()
+		return valor
+	}
+	
 	method precioViaje(){
-		valorKm = origen.distanciaEntre(destino) * transporte.costoPorKilometro()
-		return (valorKm + destino.precio())
+		return (self.valorKm() + destino.precio())
 	}
 	
 	method distanciaLocalidades(){
