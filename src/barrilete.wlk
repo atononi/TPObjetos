@@ -109,6 +109,7 @@ class Viaje {
 	var property valorKm = 0
 	
 	method valorKm(){
+		var valor 
 		valor = origen.distanciaEntre(destino) * transporte.costoPorKilometro()
 		return valor
 	}
