@@ -25,3 +25,8 @@ test "El precio a la Rioja que arma Barrilete cosmico puede ser 28750 o 26750" {
 	barrileteCosmico.nuevoUsuario(pepe)
 	assert.that( p.contains(barrileteCosmico.armarViaje(laRioja).precioViaje() ) )
 }
+
+test "La ciudad de origen de Pepe luego de viajar a La Rioja, es La Rioja"{
+	pepe.viajarA(laRioja)
+	assert.equals(laRioja, pepe.localidadOrigen())
+}
