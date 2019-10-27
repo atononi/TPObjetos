@@ -101,7 +101,7 @@ class Usuario {
 		unUsuario.following().add(nombreUsuario)
 	}
 	
-	method cambiarPerfil(nuevoPerfil){
+	method perfil(nuevoPerfil){
 		perfil = nuevoPerfil
 	}
 }
