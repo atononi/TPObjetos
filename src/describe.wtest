@@ -1,32 +1,25 @@
 import barrilete.*
 
-test "La distancia entre Buenos Aires y Bariloche es 175" {
-	assert.equals(175, buenosAires.distanciaEntre(bariloche))
-}
-	
-test "La distancia entre Bariloche y Buenos Aires es 175" {
-	assert.equals(175, bariloche.distanciaEntre(buenosAires))
-}
-	
-test "El precio por viajar al sur, desde Buenos, es de 196250" {
-	assert.equals(196250, viajeAlSur.precioViaje())
+
+test "Pepe va hasta mar del plata en avion" {
+	var pepeMDP
+	pepeMDP = barrileteCosmico.armarViaje(pepe, marDelPlata)
+	assert.equals(avion, pepeMDP.transporte())
 }
 
-test "La distancia entre las localidades del viajeAlSur es de 175" {
-	assert.equals(175, viajeAlSur.distanciaLocalidades())
+test "Felipe puede cambiar su perfil a empresarial" {
+	felipe.perfil('empresarial')
+	assert.equals('empresarial', felipe.perfil())
 }
 
-test "Los kilometros de Pepe son 175" {
-	assert.equals(175, pepe.obtenerKilometros())
+test "Tucuman no es destino destacado"{
+	assert.that(not(tucuman.destinoDestacado()))
 }
 
-test "El precio a la Rioja que arma Barrilete cosmico puede ser 28750 o 26750" {
-	var p = [28750, 26750]
-	barrileteCosmico.nuevoUsuario(pepe)
-	assert.that( p.contains(barrileteCosmico.armarViaje(laRioja).precioViaje() ) )
+test "Buenos Aires es un destino destacado"{
+	assert.that(buenosAires.destinoDestacado())
 }
 
-test "La ciudad de origen de Pepe luego de viajar a La Rioja, es La Rioja"{
-	pepe.viajarA(laRioja)
-	assert.equals(laRioja, pepe.localidadOrigen())
+test "Bariloche es peligroso"{
+	assert.that(bariloche.esPeligroso())
 }
