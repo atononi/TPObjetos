@@ -50,11 +50,10 @@ object barrileteCosmico{
 			var mediosBaratos
 			var kms = (usuario.localidadOrigen().ubicacion() - nuevoDestino.ubicacion()).abs()
 			mediosBaratos = mediosTransporte.filter({medioT => medioT.costoPorKilometro()*kms < usuario.cuenta() })
-			try {
-				return mediosBaratos.max({medioT=>medioT.velocidad()})
-			} catch e: Exception {
-				return 'No tiene plata'
-				}
+			if(mediosBaratos == []){
+				throw new Exception(message='No tiene plata costearse ningun transporte')
+			}
+			return mediosBaratos.max({medioT=>medioT.velocidad()})
 			}
 		
 		if(usuario.perfil()=='empresarial'){
@@ -71,9 +70,6 @@ object barrileteCosmico{
 		return new Viaje(origen=origen,destino=destino,transporte=transporte)
 	}
 	
-//	method cambiarPerfil(usuario, nuevoPerfil){
-//		usuario.perfil() = nuevoPerfil
-//	}
 	
 }
 
@@ -88,11 +84,12 @@ class Usuario {
 	var property perfil
 	
 	method viajarA(destino){
-		if(destino.precio() < cuenta){
-			lugaresConocidos.add(destino)
-			cuenta -= destino.precio()
-			localidadOrigen = destino
+		if(destino.precio() > cuenta){
+			throw new Exception(message='No tiene la plata suficiente')
 		}
+		lugaresConocidos.add(destino)
+		cuenta -= destino.precio()
+		localidadOrigen = destino
 	}
 	
 	method obtenerKilometros(){
@@ -102,6 +99,10 @@ class Usuario {
 	method seguirA(unUsuario){
 		following.add(unUsuario.nombreUsuario())
 		unUsuario.following().add(nombreUsuario)
+	}
+	
+	method cambiarPerfil(nuevoPerfil){
+		perfil = nuevoPerfil
 	}
 }
 
@@ -118,11 +119,10 @@ class Localidad inherits Destino {
 	
 	override method esPeligroso(){
 		if(tipo=='playa'){
-			return true
+			return false
 		}
 		if(tipo=='montania'){
-			super()
-			return cualidad > 5000
+			return (equipaje.any({objecto => objecto.startsWith("Vacuna")}) and cualidad > 5000)
 		}
 		if(tipo=='ciudadHistorica'){
 			return not(equipaje.any({objecto => objecto.startsWith("Asistencia")}))
@@ -132,8 +132,7 @@ class Localidad inherits Destino {
 	
 	override method destinoDestacado(){
 		if(tipo=='ciudadHistorica'){
-			super()
-			return cualidad.length() > 3
+			return (precio>2000 and cualidad.size() > 3)
 		}
 		if(tipo=='montania'){
 			return true
@@ -207,7 +206,7 @@ const bariloche = new Localidad(
 	precio = 65000,
 	equipaje = ['Vacuna'],
 	tipo = 'montania',
-	cualidad = 5000
+	cualidad = 5250
 )
 
 const laRioja = new Localidad(
