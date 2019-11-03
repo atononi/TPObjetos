@@ -45,10 +45,14 @@ object barrileteCosmico{
 	const property mediosTransporte = [avion, micro, tren, barco]
 	var property transporte
 	
+	method obtenerTransporte(usuario, nuevoDestino, mediosTransporte){
+		return usuario.perfil().transporteDisponible(usuario, nuevoDestino, mediosTransporte)
+	}
+	
 	method armarViaje(usuario, nuevoDestino){
 		origen = usuario.localidadOrigen()
 		destino = nuevoDestino
-		transporte = usuario.perfil().transporteDisponible(usuario, nuevoDestino, mediosTransporte)
+		transporte = self.obtenerTransporte(usuario, nuevoDestino, mediosTransporte)
 		
 		return new Viaje(origen=origen,destino=destino,transporte=transporte)
 	}
@@ -90,9 +94,13 @@ class Usuario {
 }
 
 class Estudiantil{
+	method obtenerKms(usuario, nuevoDestino){
+		return (usuario.localidadOrigen().ubicacion() - nuevoDestino.ubicacion()).abs()
+	}
+
 	method transporteDisponible(usuario, nuevoDestino, mediosTransporte){
 		var mediosBaratos
-		var kms = (usuario.localidadOrigen().ubicacion() - nuevoDestino.ubicacion()).abs()
+		var kms = self.obtenerKms(usuario, nuevoDestino)
 		mediosBaratos = mediosTransporte.filter({medioT => medioT.costoPorKm()*kms < usuario.cuenta() })
 		if(mediosBaratos == []){
 			throw new Exception(message='No tiene plata costearse ningun transporte')
