@@ -45,33 +45,16 @@ object barrileteCosmico{
 	const property mediosTransporte = [avion, micro, tren, barco]
 	var property transporte
 	
-	method elegirTransporte(usuario, nuevoDestino){
-		if(usuario.perfil()=='estudiantil'){
-			var mediosBaratos
-			var kms = (usuario.localidadOrigen().ubicacion() - nuevoDestino.ubicacion()).abs()
-			mediosBaratos = mediosTransporte.filter({medioT => medioT.costoPorKilometro()*kms < usuario.cuenta() })
-			if(mediosBaratos == []){
-				throw new Exception(message='No tiene plata costearse ningun transporte')
-			}
-			return mediosBaratos.max({medioT=>medioT.velocidad()})
-			}
-		
-		if(usuario.perfil()=='empresarial'){
-			return mediosTransporte.max({medioT=>medioT.velocidad() })
-		}
-		return mediosTransporte.anyOne()
-	}
-	
 	method armarViaje(usuario, nuevoDestino){
 		origen = usuario.localidadOrigen()
 		destino = nuevoDestino
-		transporte = self.elegirTransporte(usuario, nuevoDestino)
+		transporte = usuario.perfil().transporteDisponible(usuario, nuevoDestino, mediosTransporte)
 		
 		return new Viaje(origen=origen,destino=destino,transporte=transporte)
 	}
 	
-	
 }
+
 
 // Usuarios
 class Usuario {
@@ -106,67 +89,92 @@ class Usuario {
 	}
 }
 
+class Estudiantil{
+	method transporteDisponible(usuario, nuevoDestino, mediosTransporte){
+		var mediosBaratos
+		var kms = (usuario.localidadOrigen().ubicacion() - nuevoDestino.ubicacion()).abs()
+		mediosBaratos = mediosTransporte.filter({medioT => medioT.costoPorKm()*kms < usuario.cuenta() })
+		if(mediosBaratos == []){
+			throw new Exception(message='No tiene plata costearse ningun transporte')
+		}
+		return mediosBaratos.max({medioT=>medioT.velocidad()})
+		}
+}
+
+class Empresarial{
+	method transporteDisponible(usuario, nuevoDestino, mediosTransporte){
+		return mediosTransporte.max({medioT=>medioT.velocidad() })
+	}
+}
+
+class Familiar{
+	method transporteDisponible(usuario, nuevoDestino, mediosTransporte){
+		return mediosTransporte.anyOne()
+	}
+}
 
 // Localidades
 class Localidad inherits Destino {
 	var property ubicacion 
-	var property tipo
 	var property cualidad
 	
 	method distanciaEntre(otroLugar){
 		return (ubicacion - otroLugar.ubicacion()).abs()
 	}
 	
+}
+
+class Playa inherits Localidad {
 	override method esPeligroso(){
-		if(tipo=='playa'){
-			return false
-		}
-		if(tipo=='montania'){
-			return (equipaje.any({objecto => objecto.startsWith("Vacuna")}) and cualidad > 5000)
-		}
-		if(tipo=='ciudadHistorica'){
-			return not(equipaje.any({objecto => objecto.startsWith("Asistencia")}))
-		}
 		return false
 	}
-	
 	override method destinoDestacado(){
-		if(tipo=='ciudadHistorica'){
-			return (precio>2000 and cualidad.size() > 3)
-		}
-		if(tipo=='montania'){
-			return true
-		}
 		return false
 	}
-	
+}
+class Montania inherits Localidad {
+	override method esPeligroso(){
+		return (equipaje.any({objecto => objecto.startsWith("Vacuna")}) and cualidad > 5000)
+	}
+	override method destinoDestacado(){
+		return true
+	}
+}
+class CiudadHistorica inherits Localidad {
+	override method esPeligroso(){
+		return not(equipaje.any({objecto => objecto.startsWith("Asistencia")}))
+	}
+	override method destinoDestacado(){
+		return (precio>2000 and cualidad.size() > 3)
+	}
 }
 
 
 class MedioDeTransporte {
 	var property duracionTrayecto
-	var property medio
 	var property cualidad 
 	var property velocidad
-	
-	
-	method costoPorKilometro(){
-		if(medio=='micro'){
-			return 5000
-		}
-		if(medio=='tren'){
-			return 1429
-		}
-		if(medio=='avion'){
-			return cualidad.sum()
-		}
-		if(medio=='barco'){
-			return cualidad * 1000
-		}
-		return 0
+}
+
+class Micro inherits MedioDeTransporte {
+	method costoPorKm(){
+		return 500
 	}
-	
-	
+}
+class Tren inherits MedioDeTransporte {
+	method costoPorKm(){
+		return 1429
+	}
+}
+class Avion inherits MedioDeTransporte {
+	method costoPorKm(){
+		return cualidad.sum()
+	}
+}
+class Barco inherits MedioDeTransporte {
+	method costoPorKm(){
+		return cualidad * 1000
+	}
 }
 
 
@@ -178,7 +186,7 @@ class Viaje {
 	
 	method valorKm(){
 		var valor 
-		valor = origen.distanciaEntre(destino) * transporte.costoPorKilometro()
+		valor = origen.distanciaEntre(destino) * transporte.costoPorKm()
 		return valor
 	}
 	
@@ -193,78 +201,68 @@ class Viaje {
 
 
 
-const marDelPlata = new Localidad(
+const marDelPlata = new Playa(
 	ubicacion = 100,
 	precio = 40000,
 	equipaje = [],
-	tipo = 'playa',
 	cualidad = []
 )
 
-const bariloche = new Localidad(
+const bariloche = new Montania(
 	ubicacion = 275,
 	precio = 65000,
 	equipaje = ['Vacuna'],
-	tipo = 'montania',
 	cualidad = 5250
 )
 
-const laRioja = new Localidad(
+const laRioja = new Montania(
 	ubicacion = 340,
 	precio = 30000,
 	equipaje = ['Vacuna'],
-	tipo = 'montania',
 	cualidad = 4000
 )
 
-const buenosAires = new Localidad(
+const buenosAires = new CiudadHistorica(
 	ubicacion = 95,
 	precio = 70000,
 	equipaje = ['Asistencia al viajero'],
-	tipo = 'ciudadHistorica',
 	cualidad = ['bellasArtes','malba','naturales','usina']
 )
 
-const tucuman = new Localidad(
+const tucuman = new CiudadHistorica(
 	ubicacion = 125,
 	precio = 25000,
 	equipaje = ['Asistencia al viajero'],
-	tipo = 'ciudadHistorica',
 	cualidad = ['casaIndependencia']
 )
 
-const montevideo = new Localidad(
+const montevideo = new Playa(
 	ubicacion = 245,
 	precio = 85000,
 	equipaje = [],
-	tipo = 'playa',
 	cualidad = []
 )
 
-const avion = new MedioDeTransporte(
+const avion = new Avion(
 	duracionTrayecto = 9000,
-	medio = 'avion',
 	velocidad = 400,
 	cualidad = [350,350]
 )
 
-const micro = new MedioDeTransporte(
+const micro = new Micro(
 	duracionTrayecto = 259200,
-	medio = 'micro',
 	velocidad = 140,
 	cualidad = []
 )
 
-const barco = new MedioDeTransporte(
+const barco = new Barco(
 	duracionTrayecto = 432000,
-	medio = 'barco',
 	velocidad = 213, // nudos pasados a km
 	cualidad = 25
 )
 
-const tren = new MedioDeTransporte(
+const tren = new Tren(
 	duracionTrayecto = 216000,
-	medio = 'tren',
 	velocidad = 135,
 	cualidad = []
 )
@@ -307,7 +305,7 @@ const pepe = new Usuario(
 	cuenta = 165000,
 	localidadOrigen = buenosAires,
 	lugaresConocidos = [bariloche, laRioja],
-	perfil = 'empresarial'
+	perfil = new Empresarial()
 )
 
 const felipe = new Usuario(
@@ -316,7 +314,7 @@ const felipe = new Usuario(
 	cuenta = 2000,
 	localidadOrigen = buenosAires,
 	lugaresConocidos = [],
-	perfil = 'estudiantil'
+	perfil = new Estudiantil()
 )
 
 const gutierrez = new Usuario(
@@ -325,6 +323,6 @@ const gutierrez = new Usuario(
 	cuenta = 120000,
 	localidadOrigen = buenosAires,
 	lugaresConocidos = [],
-	perfil = 'familiar'
+	perfil = new Familiar()
 )
 
