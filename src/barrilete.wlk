@@ -38,27 +38,6 @@ const goodAirs = new Destino(
 	equipaje = ["Cerveza", "Protector Solar"]
 )
 
-// Barrilete Cosmico
-object barrileteCosmico{
-	var property origen
-	var property destino
-	const property mediosTransporte = [avion, micro, tren, barco]
-	var property transporte
-	
-	method obtenerTransporte(usuario, nuevoDestino, mediosTransporte){
-		return usuario.perfil().transporteDisponible(usuario, nuevoDestino, mediosTransporte)
-	}
-	
-	method armarViaje(usuario, nuevoDestino){
-		origen = usuario.localidadOrigen()
-		destino = nuevoDestino
-		transporte = self.obtenerTransporte(usuario, nuevoDestino, mediosTransporte)
-		
-		return new Viaje(origen=origen,destino=destino,transporte=transporte)
-	}
-	
-}
-
 
 // Usuarios
 class Usuario {
